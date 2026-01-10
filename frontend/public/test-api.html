@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 测试页面</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { margin: 5px; padding: 8px 16px; }
+    </style>
+</head>
+<body>
+    <h1>API 连接测试</h1>
+
+    <h2>1. 测试后端连接</h2>
+    <button onclick="testBackendConnection()">测试后端连接</button>
+    <div id="backend-result" class="result"></div>
+
+    <h2>2. 测试单词 API</h2>
+    <button onclick="testWordsAPI()">测试获取单词</button>
+    <div id="words-result" class="result"></div>
+
+    <h2>3. 测试用户验证 API</h2>
+    <input type="number" id="userId" placeholder="输入用户ID" value="1">
+    <button onclick="testVerifyAPI()">测试用户验证</button>
+    <div id="verify-result" class="result"></div>
+
+    <h2>4. 检查 localStorage</h2>
+    <button onclick="checkLocalStorage()">检查本地存储</button>
+    <div id="storage-result" class="result"></div>
+
+    <script>
+        async function testBackendConnection() {
+            const result = document.getElementById('backend-result');
+            try {
+                const response = await fetch('/api/words');
+                if (response.ok) {
+                    const data = await response.json();
+                    result.className = 'result success';
+                    result.textContent = `✅ 后端连接成功: ${JSON.stringify(data)}`;
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent = `❌ 后端连接失败: ${error.message}`;
+            }
+        }
+
+        async function testWordsAPI() {
+            const result = document.getElementById('words-result');
+            try {
+                const response = await fetch('/api/words');
+                if (response.ok) {
+                    const data = await response.json();
+                    result.className = 'result success';
+                    result.textContent = `✅ 单词API成功: ${JSON.stringify(data)}`;
+                } else {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent = `❌ 单词API失败: ${error.message}`;
+            }
+        }
+
+        async function testVerifyAPI() {
+            const userId = document.getElementById('userId').value;
+            const result = document.getElementById('verify-result');
+            try {
+                const response = await fetch('/api/auth/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: parseInt(userId) })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    result.className = 'result success';
+                    result.textContent = `✅ 用户验证成功: ${JSON.stringify(data)}`;
+                } else {
+                    throw new Error(data.message || `HTTP ${response.status}`);
+                }
+            } catch (error) {
+                result.className = 'result error';
+                result.textContent = `❌ 用户验证失败: ${error.message}`;
+            }
+        }
+
+        function checkLocalStorage() {
+            const result = document.getElementById('storage-result');
+            const stored = localStorage.getItem('vocab_user');
+            if (stored) {
+                try {
+                    const data = JSON.parse(stored);
+                    const now = Date.now();
+                    const expiry = data.expiry || 0;
+                    const isExpired = now > expiry;
+
+                    result.className = 'result success';
+                    result.innerHTML = `
+                        <strong>存储的用户数据:</strong><br>
+                        用户ID: ${data.id}<br>
+                        用户名: ${data.username}<br>
+                        过期时间: ${new Date(expiry).toLocaleString()}<br>
+                        当前时间: ${new Date(now).toLocaleString()}<br>
+                        是否过期: ${isExpired ? '❌ 已过期' : '✅ 未过期'}<br>
+                        剩余时间: ${isExpired ? '已过期' : Math.ceil((expiry - now) / (24 * 60 * 60 * 1000)) + '天'}
+                    `;
+                } catch (error) {
+                    result.className = 'result error';
+                    result.textContent = `❌ localStorage数据格式错误: ${error.message}`;
+                }
+            } else {
+                result.className = 'result error';
+                result.textContent = '❌ 未找到存储的用户数据';
+            }
+        }
+    </script>
+</body>
+</html>
