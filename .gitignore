@@ -47,3 +47,6 @@ pids
 # 操作系统文件
 .DS_Store
 Thumbs.db
+
+# API Key 配置
+**/DeepSeekController.java

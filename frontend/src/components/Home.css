@@ -32,19 +32,30 @@
   border-radius: 16px;
   padding: 40px 30px;
   text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  cursor: grab;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.3s ease,
+              opacity 0.2s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   color: white;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  will-change: transform;
 }
 
 .language-card:hover {
-  transform: translateY(-8px);
+  transform: translateY(-8px) scale(1.02);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.language-card.dragging {
+  cursor: grabbing;
+  transition: none;
 }
 
 .language-icon {

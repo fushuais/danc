@@ -12,6 +12,9 @@ export default function WordCard({ currentUser, onUserUpdate }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [rememberedCount, setRememberedCount] = useState(0);
+  const [examples, setExamples] = useState([]);
+  const [examplesExpanded, setExamplesExpanded] = useState(false);
+  const [loadingExamples, setLoadingExamples] = useState(false);
 
   useEffect(() => {
     const fetchWords = async () => {
@@ -205,6 +208,51 @@ export default function WordCard({ currentUser, onUserUpdate }) {
 
   // 移除登录检查，允许未登录用户也能背单词（但无法记录进度）
 
+  // 调用本地例句数据库获取例句（免费）
+  const fetchExamples = async (word) => {
+    try {
+      setLoadingExamples(true);
+      const response = await fetch('/api/examples', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ word }),
+      });
+
+      if (!response.ok) {
+        throw new Error('获取例句失败');
+      }
+
+      const data = await response.json();
+      setExamples(data.examples || []);
+      setExamplesExpanded(false);
+    } catch (error) {
+      console.error('获取例句失败:', error);
+      setExamples([]);
+    } finally {
+      setLoadingExamples(false);
+    }
+  };
+
+  // 当卡片翻转时获取例句
+  useEffect(() => {
+    if (showMeaning && currentWord) {
+      const parsedWord = parseWord(currentWord.word);
+      if (parsedWord.english) {
+        fetchExamples(parsedWord.english);
+      }
+    } else {
+      setExamples([]);
+      setExamplesExpanded(false);
+    }
+  }, [showMeaning, currentIndex]);
+
+  // 切换例句展开状态
+  const toggleExamples = () => {
+    setExamplesExpanded(!examplesExpanded);
+  };
+
   if (loading) {
     return (
       <div className="word-card-container">
@@ -273,14 +321,40 @@ export default function WordCard({ currentUser, onUserUpdate }) {
         </div>
       </div>
       {showMeaning && (
-        <div className="word-actions">
-          <button className="btn-forget" onClick={handleForget}>
-            忘记
-          </button>
-          <button className="btn-remember" onClick={handleRemember}>
-            记住
-          </button>
-        </div>
+        <>
+          <div className="examples-section">
+            {loadingExamples ? (
+              <div className="examples-loading">加载例句中...</div>
+            ) : examples.length > 0 ? (
+              <>
+                <div className="examples-header">
+                  <span className="examples-title">相关例句</span>
+                  <button className="examples-toggle-btn" onClick={toggleExamples}>
+                    {examplesExpanded ? '⬇️' : '⬇️'}
+                  </button>
+                </div>
+                <div className={`examples-list ${examplesExpanded ? 'expanded' : ''}`}>
+                  {examples.slice(0, examplesExpanded ? examples.length : 3).map((example, index) => (
+                    <div key={index} className="example-item">
+                      <div className="example-english">{example.english}</div>
+                      <div className="example-chinese">{example.chinese}</div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="examples-empty">暂无例句</div>
+            )}
+          </div>
+          <div className="word-actions">
+            <button className="btn-forget" onClick={handleForget}>
+              忘记
+            </button>
+            <button className="btn-remember" onClick={handleRemember}>
+              记住
+            </button>
+          </div>
+        </>
       )}
     </div>
   );

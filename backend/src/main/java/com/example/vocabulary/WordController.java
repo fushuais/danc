@@ -21,6 +21,9 @@ public class WordController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ExampleSentenceService exampleSentenceService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @GetMapping("/words")
@@ -222,6 +225,35 @@ public class WordController {
             return ResponseEntity.ok(stats);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
+     * 获取单词例句（免费本地数据库）
+     */
+    @PostMapping("/examples")
+    public ResponseEntity<?> getExamples(@RequestBody Map<String, String> request) {
+        try {
+            String word = request.get("word");
+            if (word == null || word.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("单词不能为空");
+            }
+
+            System.out.println("📖 请求获取例句: " + word);
+
+            // 从本地例句数据库获取例句
+            List<Map<String, String>> examples = exampleSentenceService.getExamples(word);
+
+            return ResponseEntity.ok(Map.of(
+                "word", word,
+                "examples", examples,
+                "hasExamples", !examples.isEmpty()
+            ));
+        } catch (Exception e) {
+            System.err.println("❌ 获取例句失败: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("获取例句失败: " + e.getMessage());
         }
     }
 }
