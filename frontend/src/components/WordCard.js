@@ -253,6 +253,74 @@ export default function WordCard({ currentUser, onUserUpdate }) {
     setExamplesExpanded(!examplesExpanded);
   };
 
+  // 翻译例句（使用免费的翻译API）
+  const translateExample = async (english, index) => {
+    try {
+      // 先显示"翻译中..."
+      setExamples(prevExamples => {
+        const newExamples = [...prevExamples];
+        newExamples[index] = {
+          ...newExamples[index],
+          chinese: '翻译中...'
+        };
+        return newExamples;
+      });
+
+      // 使用 MyMemory 免费翻译API
+      const response = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(english)}&langpair=en|zh-CN`);
+      const data = await response.json();
+
+      if (data.responseStatus === 200 && data.responseData) {
+        // 提取翻译文本（API返回的是 responseData.translatedText）
+        let translatedText = '';
+        if (typeof data.responseData === 'string') {
+          translatedText = data.responseData;
+        } else if (data.responseData && data.responseData.translatedText) {
+          translatedText = data.responseData.translatedText;
+        }
+
+        if (translatedText) {
+          // 更新该例句的中文翻译
+          setExamples(prevExamples => {
+            const newExamples = [...prevExamples];
+            newExamples[index] = {
+              ...newExamples[index],
+              chinese: translatedText
+            };
+            return newExamples;
+          });
+        } else {
+          throw new Error('翻译文本为空');
+        }
+      } else {
+        console.error('翻译失败:', data);
+        throw new Error('翻译API返回失败');
+      }
+    } catch (error) {
+      console.error('翻译错误:', error);
+      // 失败时恢复为可翻译状态
+      setExamples(prevExamples => {
+        const newExamples = [...prevExamples];
+        newExamples[index] = {
+          ...newExamples[index],
+          chinese: '[需要翻译] ' + english
+        };
+        return newExamples;
+      });
+
+      // 提供备用方案 - 直接打开Google翻译
+      const googleTranslateUrl = `https://translate.google.com/?sl=en&tl=zh-CN&text=${encodeURIComponent(english)}`;
+      window.open(googleTranslateUrl, '_blank');
+    }
+  };
+
+  // 检查是否需要翻译
+  const needsTranslation = (chinese) => {
+    return chinese && typeof chinese === 'string' && chinese.startsWith('[需要翻译]');
+  };
+
+
+
   if (loading) {
     return (
       <div className="word-card-container">
@@ -318,43 +386,58 @@ export default function WordCard({ currentUser, onUserUpdate }) {
         <div className="word-card-back">
           <div className="word-text english-word">{parsedWord.english}</div>
           <div className="meaning-text">{parsedWord.content || currentWord.meaning || '暂无中文含义'}</div>
-        </div>
-      </div>
-      {showMeaning && (
-        <>
+          
+          {/* 例句模块直接嵌入卡片背面 */}
           <div className="examples-section">
             {loadingExamples ? (
               <div className="examples-loading">加载例句中...</div>
             ) : examples.length > 0 ? (
               <>
                 <div className="examples-header">
-                  <span className="examples-title">相关例句</span>
                   <button className="examples-toggle-btn" onClick={toggleExamples}>
                     {examplesExpanded ? '⬇️' : '⬇️'}
                   </button>
                 </div>
                 <div className={`examples-list ${examplesExpanded ? 'expanded' : ''}`}>
-                  {examples.slice(0, examplesExpanded ? examples.length : 3).map((example, index) => (
-                    <div key={index} className="example-item">
-                      <div className="example-english">{example.english}</div>
-                      <div className="example-chinese">{example.chinese}</div>
-                    </div>
-                  ))}
+                  {examples.slice(0, examplesExpanded ? examples.length : 3).map((example, index) => {
+                    // 安全处理 chinese 字段
+                    const chineseText = typeof example.chinese === 'string' ? example.chinese : String(example.chinese || '');
+                    return (
+                      <div key={index} className="example-item">
+                        <div className="example-english">{example.english}</div>
+                        {needsTranslation(chineseText) ? (
+                          <div
+                            className="example-chinese example-needs-translation"
+                            onClick={() => translateExample(example.english, index)}
+                            title="点击翻译"
+                          >
+                            🔍 点击翻译
+                          </div>
+                        ) : chineseText === '翻译中...' ? (
+                          <div className="example-chinese example-translating">翻译中...</div>
+                        ) : (
+                          <div className="example-chinese">{chineseText}</div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </>
             ) : (
               <div className="examples-empty">暂无例句</div>
             )}
           </div>
-          <div className="word-actions">
-            <button className="btn-forget" onClick={handleForget}>
-              忘记
-            </button>
-            <button className="btn-remember" onClick={handleRemember}>
-              记住
-            </button>
-          </div>
-        </>
+        </div>
+      </div>
+      {showMeaning && (
+        <div className="word-actions">
+          <button className="btn-forget" onClick={handleForget}>
+            忘记
+          </button>
+          <button className="btn-remember" onClick={handleRemember}>
+            记住
+          </button>
+        </div>
       )}
     </div>
   );

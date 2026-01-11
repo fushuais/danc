@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
 
@@ -24,33 +24,37 @@ export default function Home() {
       name: '日语',
       icon: '🇯🇵',
       color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-      path: '/study'
+      path: '/japanese'
     },
     {
       id: 'korean',
       name: '韩语',
       icon: '🇰🇷',
       color: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-      path: '/study'
+      path: '/korean'
     }
   ]);
 
   const [draggedIndex, setDraggedIndex] = useState(null);
   const [dragOverIndex, setDragOverIndex] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
-  const pressTimerRef = useRef(null);
 
-  const handleLanguageClick = (language, e) => {
+  const handleLanguageClick = (language) => {
     if (isDragging) return;
     console.log('选择语言:', language.name);
     navigate(language.path);
   };
 
   const handleDragStart = (e, index) => {
+    console.log('drag start', index, e.type);
     setDraggedIndex(index);
     setIsDragging(true);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/html', e.target.innerHTML);
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/html', e.target.innerHTML);
+      // 某些浏览器需要至少一种数据类型
+      e.dataTransfer.setData('text/plain', '');
+    }
     if (navigator.vibrate) {
       navigator.vibrate(50);
     }
@@ -58,17 +62,22 @@ export default function Home() {
 
   const handleDragOver = (e, index) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'move';
+    }
+    console.log('drag over', index, e.type);
     if (draggedIndex !== null && draggedIndex !== index) {
       setDragOverIndex(index);
     }
   };
 
   const handleDragLeave = () => {
+    console.log('drag leave');
     setDragOverIndex(null);
   };
 
   const handleDrop = (e, dropIndex) => {
+    console.log('drop', dropIndex, e.type);
     e.preventDefault();
     if (draggedIndex !== null && draggedIndex !== dropIndex) {
       const newLanguages = [...languages];
@@ -86,6 +95,7 @@ export default function Home() {
   };
 
   const handleDragEnd = () => {
+    console.log('drag end');
     setIsDragging(false);
     setDraggedIndex(null);
     setDragOverIndex(null);
@@ -114,17 +124,13 @@ export default function Home() {
 
   return (
     <div className="home-container">
-      <div className="home-header">
-        <h1>选择学习语言</h1>
-        <p className="home-subtitle">点击选择你想学习的语言，长按拖动可调整顺序</p>
-      </div>
       <div className="languages-grid">
         {languages.map((language, index) => (
           <div
             key={language.id}
             className={`language-card ${draggedIndex === index ? 'dragging' : ''}`}
             style={getCardStyle(index)}
-            onClick={(e) => handleLanguageClick(language, e)}
+            onClick={() => handleLanguageClick(language)}
             draggable={true}
             onDragStart={(e) => handleDragStart(e, index)}
             onDragOver={(e) => handleDragOver(e, index)}

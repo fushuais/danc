@@ -1,0 +1,35 @@
+{
+  "appId": "com.example.vocabulary",
+  "appName": "单词学习",
+  "webDir": "build",
+  "bundledWebRuntime": false,
+  "server": {
+    "iosScheme": "capacitor"
+  },
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#FFFFFE",
+    "allowsLinkPreview": false,
+    "handleApplicationActivities": false,
+    "scrollEnabled": true,
+    "autoHideHomeIndicator": true,
+    "webContentsDebuggingEnabled": true
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0,
+      "launchAutoHide": true,
+      "backgroundColor": "#FFFFFE",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "androidSpinnerStyle": "large",
+      "iosSpinnerStyle": "small",
+      "spinnerColor": "#999999",
+      "splashFullScreen": false,
+      "splashImmersive": false,
+      "layoutName": "LaunchScreen",
+      "useDialog": true
+    }
+  }
+}

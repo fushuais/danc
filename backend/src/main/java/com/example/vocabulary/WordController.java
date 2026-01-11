@@ -22,7 +22,7 @@ public class WordController {
     private UserRepository userRepository;
 
     @Autowired
-    private ExampleSentenceService exampleSentenceService;
+    private OnlineExampleService onlineExampleService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -229,7 +229,7 @@ public class WordController {
     }
 
     /**
-     * 获取单词例句（免费本地数据库）
+     * 获取单词例句（优先本地，失败时尝试在线免费API）
      */
     @PostMapping("/examples")
     public ResponseEntity<?> getExamples(@RequestBody Map<String, String> request) {
@@ -241,8 +241,8 @@ public class WordController {
 
             System.out.println("📖 请求获取例句: " + word);
 
-            // 从本地例句数据库获取例句
-            List<Map<String, String>> examples = exampleSentenceService.getExamples(word);
+            // 从在线服务获取例句（优先本地，失败时使用API）
+            List<Map<String, String>> examples = onlineExampleService.getExamples(word);
 
             return ResponseEntity.ok(Map.of(
                 "word", word,

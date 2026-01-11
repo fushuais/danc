@@ -4,6 +4,11 @@
   box-sizing: border-box;
 }
 
+html {
+  background-color: #FFFFFE;
+  height: 100%;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -11,7 +16,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f5f5f5;
+  background-color: #FFFFFE;
 
   /* iOS Safari 优化 */
   -webkit-text-size-adjust: 100%;
@@ -45,16 +50,7 @@ button, .action-btn {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
 }
 
-/* iOS 安全区域适配 */
-@supports (padding-top: env(safe-area-inset-top)) {
-  .App-header {
-    padding-top: calc(20px + env(safe-area-inset-top));
-  }
-
-  .bottom-nav {
-    padding-bottom: calc(8px + env(safe-area-inset-bottom));
-  }
-}
+/* iOS 安全区域适配已移除 */
 
 /* iOS Safari 状态栏优化 */
 @media screen and (max-width: 768px) {
@@ -67,6 +63,10 @@ button, .action-btn {
   body {
     min-height: 100vh;
     min-height: -webkit-fill-available;
+  }
+
+  html, body {
+    height: -webkit-fill-available;
   }
 }
 
@@ -148,6 +148,7 @@ code {
   min-height: calc(var(--vh, 1vh) * 100);
   display: flex;
   flex-direction: column;
+  background-color: #FFFFFE;
 }
 
 .App-header {
@@ -735,8 +736,8 @@ code {
   bottom: 8px;
   left: 50%;
   transform: translateX(-50%);
-  width: 90%;
-  max-width: 320px;
+  width: 95%;
+  max-width: 380px;
   background:
     linear-gradient(
       180deg,
@@ -776,13 +777,13 @@ code {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px 12px;
+  padding: 6px 8px;
   text-decoration: none;
   color: rgba(0, 0, 0, 0.8);
   border-radius: 12px;
   transition: all 0.3s ease;
   position: relative;
-  min-width: 60px;
+  min-width: 52px;
   background: rgba(255, 255, 255, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.5);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -946,7 +947,8 @@ code {
 
 /* 调整main区域，为底部导航留出空间 */
 main {
-  padding-bottom: 100px; /* 为iOS风格dock留出更多空间 */
+  flex: 1;
+  padding: 20px 20px 100px;
 }
 
 
@@ -990,11 +992,6 @@ main {
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
-}
-
-main {
-  flex: 1;
-  padding: 20px;
 }
 
 .error {

@@ -5,6 +5,8 @@ import WordList from './components/WordList';
 import WordCard from './components/WordCard';
 import Home from './components/Home';
 import AuthPanel from './components/AuthPanel';
+import JapanesePage from './components/JapanesePage';
+import KoreanPage from './components/KoreanPage';
 import { verifyUser, updateDailyTasks } from './api/authService';
 
 function UserPanel({ currentUser, onClose, isVisible, isAnimating, onUserUpdate, onStatsClick, importLoading, importFile, onFileSelect, onImportWords }) {
@@ -629,11 +631,19 @@ function BottomNavigation({ currentUser }) {
       </Link>
       <Link
         to="/study"
-        className={`bottom-nav-item ${location.pathname === '/study' ? 'active' : ''} ${!currentUser ? 'disabled' : ''}`}
-        onClick={(e) => handleNavClick(e, true)}
+        className={`bottom-nav-item ${location.pathname === '/study' ? 'active' : ''}`}
+        onClick={(e) => handleNavClick(e, false)}
       >
         <div className="nav-icon">📚</div>
         <div className="nav-text">背单词</div>
+      </Link>
+      <Link
+        to="/profile"
+        className={`bottom-nav-item ${location.pathname === '/profile' ? 'active' : ''}`}
+        onClick={(e) => handleNavClick(e, false)}
+      >
+        <div className="nav-icon">👤</div>
+        <div className="nav-text">{currentUser ? '我的' : '未登录'}</div>
       </Link>
     </nav>
   );
@@ -1141,47 +1151,57 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <header className="App-header">
-          <h1>单词学习应用</h1>
-          <Navigation
-            key={currentUser ? currentUser.id : 'no-user'}
-            currentUser={currentUser}
-            onLogout={handleLogout}
-            onUserIconClick={handleUserIconClick}
-          />
-        </header>
-        <main>
-          {!currentUser && <AuthPanel onLogin={handleLogin} />}
-          <Routes>
-            <Route path="/home" element={<Home />} />
-            <Route path="/" element={<WordList currentUser={currentUser} />} />
-            <Route path="/study" element={<WordCard currentUser={currentUser} onUserUpdate={handleUserUpdate} />} />
-          </Routes>
-        </main>
-
-        {/* 底部导航栏 */}
-        <BottomNavigation currentUser={currentUser} />
-
-        <UserPanel
-          currentUser={currentUser}
-          isVisible={isUserPanelVisible}
-          isAnimating={isUserPanelAnimating}
-          onClose={handleCloseUserPanel}
-          onUserUpdate={handleUserUpdate}
-          onStatsClick={handleStatsClick}
-          importLoading={importLoading}
-          importFile={importFile}
-          onFileSelect={handleFileSelect}
-          onImportWords={handleImportWords}
-        />
-
-        {/* 学习统计弹窗 */}
-        <StatsPanel
-          isVisible={isStatsPanelVisible}
-          onClose={handleCloseStatsPanel}
-          stats={learningStats}
-          loading={statsLoading}
-        />
+        <Routes>
+          <Route path="/profile" element={
+            <>
+              <header className="App-header">
+                <h1>单词学习应用</h1>
+                <Navigation
+                  key={currentUser ? currentUser.id : 'no-user'}
+                  currentUser={currentUser}
+                  onLogout={handleLogout}
+                  onUserIconClick={handleUserIconClick}
+                />
+              </header>
+              <main>
+                <AuthPanel onLogin={handleLogin} currentUser={currentUser} onLogout={handleLogout} />
+              </main>
+              <BottomNavigation currentUser={currentUser} />
+              <UserPanel
+                currentUser={currentUser}
+                isVisible={isUserPanelVisible}
+                isAnimating={isUserPanelAnimating}
+                onClose={handleCloseUserPanel}
+                onUserUpdate={handleUserUpdate}
+                onStatsClick={handleStatsClick}
+                importLoading={importLoading}
+                importFile={importFile}
+                onFileSelect={handleFileSelect}
+                onImportWords={handleImportWords}
+              />
+              <StatsPanel
+                isVisible={isStatsPanelVisible}
+                onClose={handleCloseStatsPanel}
+                stats={learningStats}
+                loading={statsLoading}
+              />
+            </>
+          } />
+          <Route path="/*" element={
+            <>
+              <main>
+                <Routes>
+                  <Route path="/home" element={<Home />} />
+                  <Route path="/" element={<WordList currentUser={currentUser} />} />
+                  <Route path="/study" element={<WordCard currentUser={currentUser} onUserUpdate={handleUserUpdate} />} />
+                  <Route path="/japanese" element={<JapanesePage />} />
+                  <Route path="/korean" element={<KoreanPage />} />
+                </Routes>
+              </main>
+              <BottomNavigation currentUser={currentUser} />
+            </>
+          } />
+        </Routes>
       </div>
     </Router>
   );
